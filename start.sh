@@ -7,6 +7,33 @@
 # As root (sudo su)
 # cd / && curl -s -H "Cache-Control: no-cache" -o "start.sh" "https://raw.githubusercontent.com/kus/cs2-modded-server/master/start.sh" && chmod +x start.sh && bash start.sh
 
+
+# Function to safely enable unprivileged user namespaces
+enable_unprivileged_namespaces() {
+    # Check if the sysctl parameter exists (some kernels don't have it)
+    if ! sysctl kernel.unprivileged_userns_clone >/dev/null 2>&1; then
+        echo "Info: kernel.unprivileged_userns_clone not available on this system"
+        return 0
+    fi
+    
+    # Check current value
+    local current_value=$(sysctl -n kernel.unprivileged_userns_clone 2>/dev/null)
+    
+    if [ "$current_value" != "1" ]; then
+        echo "Enabling unprivileged user namespaces..."
+        if sudo sysctl kernel.unprivileged_userns_clone=1; then
+            echo "Successfully enabled unprivileged user namespaces"
+            return 0
+        else
+            echo "Warning: Failed to enable unprivileged user namespaces"
+            return 1
+        fi
+    else
+        echo "Unprivileged user namespaces already enabled"
+        return 0
+    fi
+}
+
 METADATA_URL="${METADATA_URL:-http://metadata.google.internal/computeMetadata/v1/instance/attributes}"
 
 get_metadata () {
@@ -209,15 +236,23 @@ if [ ! -d "/steamcmd" ]; then
 	mkdir /steamcmd && cd /steamcmd
 	wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
 	tar -xvzf steamcmd_linux.tar.gz
-	mkdir -p /root/.steam/sdk32/
-	ln -s /steamcmd/linux32/steamclient.so /root/.steam/sdk32/
-	mkdir -p /root/.steam/sdk64/
-	ln -s /steamcmd/linux64/steamclient.so /root/.steam/sdk64/
 fi
 
 chown -R ${user}:${user} /steamcmd
 
-# /root/.steam/sdk64/steamclient.so
+echo "Downloading any updates for Steam Linux Runtime 3.0 (sniper)..."
+# https://discord.com/channels/1160907911501991946/1160907912445710479/1411330429679829013
+# https://steamdb.info/app/1628350/depots/
+sudo -u $user /steamcmd/steamcmd.sh \
+  +api_logging 1 1 \
+  +@sSteamCmdForcePlatformType linux \
+  +@sSteamCmdForcePlatformBitness $BITS \
+  +force_install_dir /home/${user}/steamrt \
+  +login anonymous \
+  +app_update 1628350 \
+  +validate \
+  +quit
+chown -R ${user}:${user} /home/${user}/steamrt
 
 echo "Downloading any updates for CS2..."
 # https://developer.valvesoftware.com/wiki/Command_line_options
@@ -232,15 +267,23 @@ sudo -u $user /steamcmd/steamcmd.sh \
 
 cd /home/${user}
 
-mkdir -p /root/.steam/sdk32/
-ln -s /steamcmd/linux32/steamclient.so /root/.steam/sdk32/
-mkdir -p /root/.steam/sdk64/
-ln -s /steamcmd/linux64/steamclient.so /root/.steam/sdk64/
-
+# Set up steam client libraries
+# 32-bit
 mkdir -p /home/${user}/.steam/sdk32/
-ln -s /steamcmd/linux32/steamclient.so /home/${user}/.steam/sdk32/
+rm /home/${user}/.steam/sdk32/steamclient.so
+cp -v /steamcmd/linux32/steamclient.so /home/${user}/.steam/sdk32/steamclient.so || {
+	echo "ERROR: Failed to copy 32-bit libraries"
+}
+# 64-bit
 mkdir -p /home/${user}/.steam/sdk64/
-ln -s /steamcmd/linux64/steamclient.so /home/${user}/.steam/sdk64/
+rm /home/${user}/.steam/sdk64/steamclient.so
+cp -v /steamcmd/linux64/steamclient.so /home/${user}/.steam/sdk64/steamclient.so || {
+	echo "ERROR: Failed to copy 64-bit libraries"
+}
+
+# Copy .so files needed after 16.9.2025 update
+# https://discord.com/channels/1160907911501991946/1160907912445710479/1417806634503372851
+cp -v /home/${user}/cs2/game/bin/linuxsteamrt64/*.so  /home/${user}/cs2/game/csgo/bin/linuxsteamrt64/
 
 if [ "${DISTRO_OS}" == "Ubuntu" ]; then
 	if [ "${DISTRO_VERSION}" == "22.04" ]; then
@@ -277,9 +320,12 @@ else
     echo "$FILE successfully patched for Metamod."
 fi
 
+# Try to enable unprivileged namespaces
+enable_unprivileged_namespaces
+
 echo "Starting server on $PUBLIC_IP:$PORT"
 # https://developer.valvesoftware.com/wiki/Counter-Strike_2/Dedicated_Servers#Command-Line_Parameters
-echo ./game/bin/linuxsteamrt64/cs2 \
+echo /home/${user}/steamrt/run ./game/bin/linuxsteamrt64/cs2 --graphics-provider "" -- \
     -dedicated \
     -console \
     -usercon \
@@ -298,7 +344,7 @@ echo ./game/bin/linuxsteamrt64/cs2 \
 	+sv_password $SERVER_PASSWORD \
 	+rcon_password $RCON_PASSWORD \
 	+exec $EXEC
-sudo -u $user ./game/bin/linuxsteamrt64/cs2 \
+sudo -u $user /home/${user}/steamrt/run ./game/bin/linuxsteamrt64/cs2 --graphics-provider "" -- \
     -dedicated \
     -console \
     -usercon \

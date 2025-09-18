@@ -38,7 +38,7 @@
 						"mg_casual-1.6"		"65"
 						"mg_45"				"66"
 						"mg_battle"			"67"
-						"mg_prefire"		"68"
+						"mg_ctf"			"68"
 						"mg_retake"			"69"
 						"mg_executes"		"70"
 					}
@@ -117,6 +117,7 @@
 				"cs_office"			""
 				"de_vertigo"		""
 				"de_ancient"		""
+				"de_ancient_night"	""
 				"de_anubis"			""
 				"de_dust2"			""
 				"de_inferno"		""
@@ -143,7 +144,6 @@
 				"workshop/3079692971/de_aztec_hr"		""
 				"workshop/3108513658/de_akiba"		""
 				"workshop/3236615060/cs_insertion2"		""
-				"workshop/3070284539/de_train"		""
 				"workshop/3152430710/de_mills"		""
 				"workshop/3121217565/de_thera"		""
 				"workshop/3073892687/de_season"		""
@@ -208,6 +208,7 @@
 				"cs_office"			""
 				"de_vertigo"		""
 				"de_ancient"		""
+				"de_ancient_night"	""
 				"de_anubis"			""
 				"de_inferno"		""
 				"de_nuke"			""
@@ -215,6 +216,7 @@
 				"de_overpass"		""
 				"de_vertigo"		""
 				"ar_shoots"			""
+				"ar_shoots_night"	""
 				"ar_baggage"		""
 				"de_brewery"		""
 				"de_dogtown"		""
@@ -235,7 +237,6 @@
 				"workshop/3070766070/de_mutiny"		""
 				"workshop/3070594412/cs_assault"		""
 				"workshop/3072352643/de_ruins_d_prefab"		""
-				"workshop/3070284539/de_train"		""
 				"workshop/3082340867/de_sakura"		""
 				"workshop/3165559377/de_memento"		""
 				"workshop/3309665004/skatepark"		""
@@ -263,6 +264,7 @@
 			"maps"
 			{
 				"ar_shoots"			""
+				"ar_shoots_night"	""
 				"ar_baggage"		""
 				"ar_pool_day"		""
 				"workshop/3443206318/speedball"		""
@@ -487,21 +489,6 @@
 				"workshop/3082605693/1v1aim_map_longdustversion_d"		""
 			}
 		}
-		"mg_prefire"
-		{
-			"name"			"mg_prefire"
-			"displayname"			"Prefire"
-			"maps"
-			{
-				"de_ancient"		""
-				"de_dust2"			""
-				"de_inferno"		""
-				"de_mirage"			""
-				"de_overpass"		""
-				"de_anubis"			""
-				"de_nuke"			""
-			}
-		}
 		"mg_casual-1.6"
 		{
 			"name"			"mg_casual-1.6"
@@ -532,6 +519,17 @@
 				"workshop/3245245780/de_nuke_silly"				""
 				"workshop/3270516952/de_mirage45"				""
 				"workshop/3406937162/de_train_twyxe"		""
+			}
+		}
+		"mg_ctf"
+		{
+			"name"			"mg_ctf"
+			"displayname"			"Capture The Flag"
+			"maps"
+			{
+				"workshop/3555531615/ctf_2fort"				""
+				"workshop/3555532817/ctf_doublecross"		""
+				"workshop/3555534037/ctf_turbine"			""
 			}
 		}
 	}
